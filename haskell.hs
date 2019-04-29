@@ -1,24 +1,26 @@
 ﻿import Text.Show.Functions
--- TESOROS PIRATAS 
 type Nombre = String
 type Valor = Integer
-type Tesoro = (Nombre,Valor)
-type Botin = [Tesoro]
-type Pirata = (Nombre,Botin)
-
--- funciones de manejo de tesoros 
-nombreTesoro :: Tesoro->Nombre
-nombreTesoro (nombre,valor) = nombre
-valorTesoro :: Tesoro->Valor
-valorTesoro (nombre,valor) = valor
+------------TESOROS----------------
+data Tesoro = UnTesoro {nombreTesoro :: Nombre, valorTesoro :: Valor}
+instance Show Tesoro where show tes = (nombreTesoro tes)++" de "++(show (valorTesoro tes))++" dolares"
+--ejemplo
+tesoro1 = UnTesoro {nombreTesoro = "Oro", valorTesoro = 2500}
+tesoro2 = UnTesoro {nombreTesoro = "Diamante", valorTesoro = 4000}
+tesoro3 = UnTesoro {nombreTesoro = "Carbon", valorTesoro = 150}
+--funciones
 esTesoroValioso :: Tesoro->Bool
 esTesoroValioso tesoro = ((>100).valorTesoro)tesoro
 esNombreDeTesoro :: Nombre->Tesoro->Bool
 esNombreDeTesoro nombre tesoro = ((==nombre).nombreTesoro) tesoro
 
-ejemploTesoro = ("Oro",500)
-
--- funciones de manejo de botines
+-------------BOTIN---------------
+type Botin = [Tesoro]
+--ejemplo
+botin1 = [tesoro1,tesoro2]
+botin2 = []
+botin3 = [tesoro3]
+--funciones
 valorBotin :: Botin->Valor
 valorBotin botin = sum (map (valorTesoro) botin)
 valorTesoroMasValiosoBotin :: Botin->Valor
@@ -32,15 +34,13 @@ quitarTesorosValiosos botin = filter (not.esTesoroValioso) botin
 quitarTesorosPorNombre :: Botin->(Tesoro->Bool)->Botin
 quitarTesorosPorNombre botin esNombre = filter (not.esNombre) botin
 
-ejemploBotin1 = [("Sombrero",250),("Diamante",5000),("Zafiro",1000),("Reloj",105)]
-ejemploBotin2 = [("Acero",150),("Petroleo",5000),("Plata",1000),("Corona de oro",980)]
-ejemploBotin3 = [("Carbon",150)]
-
--- funciones de manejo de piratas 
-nombrePirata :: Pirata->Nombre
-nombrePirata (nombre,botin) = nombre
-botinPirata :: Pirata->Botin
-botinPirata (nombre,botin) = botin
+---------------PIRATA-------------
+data Pirata = UnPirata {nombrePirata :: Nombre, botinPirata :: Botin}
+instance Show Pirata where show pir = (nombrePirata pir)++", "++(show (botinPirata pir))
+--ejemplo
+pirata1 = UnPirata {nombrePirata = "Jack Sparrow", botinPirata = botin1}
+pirata2 = UnPirata {nombrePirata = "Annie Bonny", botinPirata = botin2}
+-- funciones 
 cantidadTesorosDePirata :: Pirata->Int
 cantidadTesorosDePirata pirata = cantidadTesorosBotin (botinPirata pirata)
 pirataAfortunado :: Pirata->Bool
@@ -48,19 +48,15 @@ pirataAfortunado pirata = (valorBotin (botinPirata pirata)) >10000
 valorTesoroMasValiosoDelPirata :: Pirata->Valor
 valorTesoroMasValiosoDelPirata pirata = valorTesoroMasValiosoBotin (botinPirata pirata)
 pirataAdquiereTesoro :: Pirata->Tesoro->Pirata
-pirataAdquiereTesoro pirata tesoro = (nombrePirata pirata, agregarTesoroABotinn True (botinPirata pirata) tesoro)
+pirataAdquiereTesoro pirata tesoro = UnPirata {nombrePirata = (nombrePirata pirata), botinPirata = (agregarTesoroABotinn True (botinPirata pirata) tesoro)}
 pirataPierdeTesorosValioso :: Pirata->Pirata
-pirataPierdeTesorosValioso pirata = (nombrePirata pirata , quitarTesorosValiosos (botinPirata pirata))
+pirataPierdeTesorosValioso pirata = UnPirata {nombrePirata = (nombrePirata pirata), botinPirata = quitarTesorosValiosos (botinPirata pirata)}
 pirataPierdeTesorosPorNombre :: Pirata->Nombre->Pirata
-pirataPierdeTesorosPorNombre pirata nombre = (nombrePirata pirata, quitarTesorosPorNombre (botinPirata pirata) (esNombreDeTesoro nombre))
+pirataPierdeTesorosPorNombre pirata nombre = UnPirata {nombrePirata = (nombrePirata pirata),botinPirata = quitarTesorosPorNombre (botinPirata pirata) (esNombreDeTesoro nombre)}
 esNombreDePirata :: Nombre->Pirata->Bool
 esNombreDePirata nombre pirata = (nombrePirata pirata) == nombre
 
-
-ejemploPirata1 = ("Jack Sparrow", ejemploBotin1)
-ejemploPirata2 = ("Annie Bonny", ejemploBotin2)
-
--- TEMPORADA DE SAQUEOS
+-- -------TEMPORADA DE SAQUEOS--------
 saquearTesorosValiosos :: Tesoro->Bool
 saquearTesorosValiosos tesoro = esTesoroValioso tesoro
 saquearTesorosEspecificos :: Nombre->Tesoro->Bool
@@ -69,52 +65,54 @@ saquearDeCorazon :: Tesoro->Bool
 saquearDeCorazon tesoro = False
 saquearComoSea :: Nombre->Tesoro->Bool
 saquearComoSea nombre tesoro = (saquearTesorosValiosos tesoro) || (saquearTesorosEspecificos nombre tesoro)
-
 saquear :: (Tesoro->Bool)->Tesoro->Pirata->Pirata
-saquear formaDeSaqueo tesoro pirata  = (nombrePirata pirata, agregarTesoroABotinn (formaDeSaqueo tesoro) (botinPirata pirata) (tesoro))
+saquear formaDeSaqueo tesoro pirata  = UnPirata {nombrePirata = (nombrePirata pirata), botinPirata = agregarTesoroABotinn (formaDeSaqueo tesoro) (botinPirata pirata) (tesoro)}
 
--- NAVEGANDO LOS SIETE MARES
+-----------TRIPULACION-----------------
 type Tripulacion = [Pirata]
-type FormaDeSaquear = (Tesoro->Bool)
-type Barco = (Nombre,Tripulacion,FormaDeSaquear)
-
--- funciones de manejo de tripulacion
+--ejemplo
+tripulacion1 = [pirata1,pirata2]
+-- funciones
 agregarPirataATripulacion :: Tripulacion->Pirata->Tripulacion
 agregarPirataATripulacion tripulacion pirata = pirata:tripulacion
 quitarPirataDeTripulacion :: Tripulacion->(Pirata->Bool)->Tripulacion
 quitarPirataDeTripulacion tripulacion esNombre = filter (not.esNombre) tripulacion
 
+-----------FORMA DE SAQUEO-----------------
+type FormaSaqueo = (Tesoro->Bool)
+--ejemplo
+saqueoValioso = (saquearTesorosValiosos)
+saqueoEspecifico = (saquearTesorosEspecificos "Oro")
+saqueoCorazon = (saquearDeCorazon)
+saqueOSiempre = (saquearComoSea "Diamante")
+
+--------------BARCO--------------
+data Barco = UnBarco {nombreBarco :: Nombre, tripulacionBarco :: Tripulacion, formaDeSaqueoBarco :: FormaSaqueo} 
+instance Show Barco where show bar = "Barco: " ++ (nombreBarco bar) ++ ", Tripulacion: " ++ (show(tripulacionBarco bar)) ++ ", " ++ (show (formaDeSaqueoBarco bar))
+--ejemplo
+barco1 = UnBarco {nombreBarco = "Perla Negra", tripulacionBarco = tripulacion1, formaDeSaqueoBarco = saqueoValioso}
 -- funciones de manejo de barcos
-nombreBarco :: Barco->Nombre
-nombreBarco (nombre,tripulacion,formaDeSaqueo) = nombre
-tripulacionBarco :: Barco->Tripulacion
-tripulacionBarco (nombre,tripulacion,formaDeSaqueo) = tripulacion
-formaDeSaqueoBarco :: Barco->FormaDeSaquear
-formaDeSaqueoBarco (nombre,tripulacion,formaDeSaqueo) = formaDeSaqueo
 incorporarPirataABarco :: Barco->Pirata->Barco
-incorporarPirataABarco barco pirata = (nombreBarco barco, agregarPirataATripulacion (tripulacionBarco barco) pirata, formaDeSaqueoBarco barco)
+incorporarPirataABarco barco pirata = UnBarco {nombreBarco = (nombreBarco barco),tripulacionBarco = (agregarPirataATripulacion (tripulacionBarco barco) pirata), formaDeSaqueoBarco = (formaDeSaqueoBarco barco)}
 pirataAbandonaBarco :: Barco->Nombre->Barco
-pirataAbandonaBarco barco nombre = (nombreBarco barco, quitarPirataDeTripulacion (tripulacionBarco barco) (esNombreDePirata nombre), formaDeSaqueoBarco barco)
+pirataAbandonaBarco barco nombre = UnBarco {nombreBarco = (nombreBarco barco), tripulacionBarco = (quitarPirataDeTripulacion (tripulacionBarco barco) (esNombreDePirata nombre)),formaDeSaqueoBarco = (formaDeSaqueoBarco barco)} 
 
-type Isla = (Nombre,Tesoro)
-nombreIsla :: Isla->Nombre
-nombreIsla (nombre,_ ) = nombre
-tesoroTipicoIsla :: Isla->Tesoro
-tesoroTipicoIsla ( _ , tesoro) = tesoro
+---------------ISLA--------------
+data Isla = UnaIsla {nombreIsla :: Nombre, tesoroTipicoIsla :: Tesoro} deriving Show
+--ejemplo
+isla1 = UnaIsla {nombreIsla = "Isla Tortuga", tesoroTipicoIsla = tesoro2}
+--funciones 
 anclarEnIslaDeshabitada :: Barco->Isla->Barco
-anclarEnIslaDeshabitada barco isla = (nombreBarco barco, map (saquear (formaDeSaqueoBarco barco) (tesoroTipicoIsla isla)) (tripulacionBarco barco), formaDeSaqueoBarco barco)
+anclarEnIslaDeshabitada barco isla = UnBarco {nombreBarco = (nombreBarco barco), tripulacionBarco = (map (saquear (formaDeSaqueoBarco barco) (tesoroTipicoIsla isla)) (tripulacionBarco barco)),formaDeSaqueoBarco = (formaDeSaqueoBarco barco)}
 
-type Ciudad = (Nombre, Botin)
-botinCiudad :: Ciudad->Botin
-botinCiudad (_,botin) = botin
+--------------CIUDAD---------------
+data Ciudad = UnaCiudad {nombreCiudad :: Nombre, botinCiudad :: Botin} deriving Show
+--ejemplo
+ciudad1 = UnaCiudad {nombreCiudad = "La Plata", botinCiudad = botin3}
+--funciones
 atacarCiudad :: Barco->Ciudad->Barco
-atacarCiudad barco ciudad = (nombreBarco barco, zipWith (saquear (formaDeSaqueoBarco barco)) (botinCiudad ciudad) (tripulacionBarco barco), formaDeSaqueoBarco barco)
+atacarCiudad barco ciudad = UnBarco {nombreBarco = (nombreBarco barco), tripulacionBarco = (zipWith (saquear (formaDeSaqueoBarco barco)) (botinCiudad ciudad) (tripulacionBarco barco)), formaDeSaqueoBarco = (formaDeSaqueoBarco barco)}
 
 -- la tripulacion del barco1 cambia de barco y asesina a todos los tripulantes del barco2 tirandolos al agua con todo y tesoros y adapta su forma de saqueo
 abordarOtroBarcoEnAltaMar :: Barco->Barco->Barco
-abordarOtroBarcoEnAltaMar barco1 barco2 = (nombreBarco barco2, tripulacionBarco barco1, formaDeSaqueoBarco barco2)
-
-ejemploIsla = ("Isla Tortuga",("Platino",50))
-ejemploCiudad = ("Buenos Aires", ejemploBotin3)
-ejemploFormaSaqueo = (saquearTesorosValiosos)
-ejemploBarco = ("Perla Negra", [ejemploPirata1, ejemploPirata2], ejemploFormaSaqueo)
+abordarOtroBarcoEnAltaMar barco1 barco2 = UnBarco {nombreBarco = (nombreBarco barco2),tripulacionBarco =  (tripulacionBarco barco1), formaDeSaqueoBarco = (formaDeSaqueoBarco barco2)}
